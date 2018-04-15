@@ -1,0 +1,6 @@
+/out
+*.docx
+*.iml
+/.idea
+*.xml
+.DS_Store

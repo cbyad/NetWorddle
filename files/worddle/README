@@ -1,0 +1,4 @@
+You will find in this archive some useful data to implement the Networddle project.
+- checker/ contains a Java class to check word proposals for a given Worddle grid
+- dicesets/ contains dice definitions (currently only for the American English language)
+- dictionaries/ contains word dictionaries (currently only one dictionary for the American English language)   
