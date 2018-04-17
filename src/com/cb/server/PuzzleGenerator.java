@@ -91,7 +91,6 @@ public class PuzzleGenerator {
      */
     private void addDice(char[] dice) {
         this.dices.add(dice);
-
     }
 
     /**
