@@ -17,6 +17,7 @@ public class Server extends Thread {
     private ServerSocket listen;
     private PuzzleGenerator generator;
     private Messager messager;
+    private NetWorddleOperations netWorddleOperations;
 
     protected int playerLimit; // de base on met a 2 mais pour le rendre plus generique
     private ExecutorService pool;
@@ -38,6 +39,7 @@ public class Server extends Thread {
             listen = new ServerSocket(PORT);
             pool = Executors.newFixedThreadPool(playerLimit);
             generator = new PuzzleGenerator(n, m, dicesPath);
+            netWorddleOperations= new NetWorddleOperations(generator);
             messager = new Messager();
             this.playerLimit = playerLimit;
             playerSessions = new ArrayList<PlayerSession>();
@@ -68,7 +70,7 @@ public class Server extends Thread {
                         this.refuseClient(client);
                     } else {
                         // ci signifie client i avec i appartenant a [0;playerLimit]
-                        PlayerSession ci = new PlayerSession(client);
+                        PlayerSession ci = new PlayerSession(client,generator,netWorddleOperations);
                         playerSessions.add(ci);
                         pool.execute(ci);
                     }
@@ -83,7 +85,7 @@ public class Server extends Thread {
 
     private void refuseClient(Socket socket) throws IOException {
         System.out.println("refus en cours...");
-        PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
+        PrintWriter out = new PrintWriter(socket.getOutputStream());
         out.println("KO/");
         out.flush();
         out.close();
@@ -91,15 +93,7 @@ public class Server extends Thread {
     }
 
 
-    private int giveScore(String word) {
-        int size = word.length();
-        if (size == 3 || size == 4) return 1;
-        if (size == 5) return 2;
-        if (size == 6) return 3;
-        if (size == 7) return 5;
-        if (size >= 8) return 11;
-        else return 0;
-    }
+
 
 
     public static void main(String[] args) {
