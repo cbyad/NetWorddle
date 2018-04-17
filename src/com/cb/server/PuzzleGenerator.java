@@ -14,13 +14,22 @@ import java.util.*;
  */
 public class PuzzleGenerator {
 
+    public static final String TEXT_FILE_CHARSET = "UTF-8";
     public ArrayList<char[]> dices;
-    public char[][] grille;
+    private char[][] grid;
 
     public PuzzleGenerator(int n, int m, String path) {
         this.dices = new ArrayList<>();
         loadDices(path);
-        grille = generate(n, m);
+        grid = generate(n, m);
+    }
+
+    public char[][] getGrid() {
+        return grid;
+    }
+
+    public void setGrid(char[][] grille) {
+        this.grid = grille;
     }
 
     /**
@@ -28,11 +37,12 @@ public class PuzzleGenerator {
      * @param m
      * @return grille[n][m]
      */
-    public char[][] generate(int n, int m) {
+    private char[][] generate(int n, int m) {
         char grille[][] = new char[n][m];
         int nbrDices = dices.size();
         int nbrDicesUtils = n * m;
         ArrayList<char[]> newDices = new ArrayList<>(nbrDicesUtils);
+        Random rand = new Random();
 
         if (nbrDicesUtils <= nbrDices) { // alors on utilise seulement les (n*m) dés
             for (int i = 0; i < nbrDicesUtils; i++)
@@ -40,14 +50,13 @@ public class PuzzleGenerator {
         }
 
         else { // on reutilise certains dés pour combler le vide
-            for (int i = 0; i < nbrDices; i++) //  [0----nbrDices]
+            for (int i = 0; i < nbrDices; i++) //  [0----nbrDices[
                 newDices.add(this.dices.get(i));
 
-            for (int i = nbrDices; i < nbrDicesUtils; i++)  // [nbrDices-----n*m]
-                newDices.add(i, this.dices.get(0)); // juste le premier est dupliquer a tous on peut faire un rand mais meme principe
+            for (int i = nbrDices; i < nbrDicesUtils; i++)  // [nbrDices-----n*m[
+                newDices.add(i, this.dices.get(rand.nextInt(nbrDices))); //  on duplique aleatoirement les premier dé dans le reste 
         }
 
-        Random rand = new Random();
         Collections.shuffle(newDices); // on melange les dés pour reduire le biais
         int cmpt = 0; // increment pour le nombre de dé dans dices
 
@@ -61,14 +70,16 @@ public class PuzzleGenerator {
         return grille;
     }
 
-
+    /**
+     * affichage de la grille
+     */
     public void printGrid() {
 
-        for (int i = 0; i < grille.length; i++) {
-            System.out.print("|");
-            for (int j = 0; j < grille[i].length; j++) {
-                System.out.print(grille[i][j]);
-                System.out.print("|");
+        for (int i = 0; i < grid.length; i++) {
+            System.out.print(" | ");
+            for (int j = 0; j < grid[i].length; j++) {
+                System.out.print(grid[i][j]);
+                System.out.print(" | ");
             }
             System.out.println("");
         }
@@ -78,19 +89,18 @@ public class PuzzleGenerator {
     /**
      * @param dice
      */
-    public void addDice(char[] dice) {
+    private void addDice(char[] dice) {
         this.dices.add(dice);
 
     }
 
-
     /**
      * @param path
      */
-    public void loadDices(String path) {
+    private void loadDices(String path) {
         try {
             InputStream flux = new FileInputStream(path);
-            InputStreamReader lecture = new InputStreamReader(flux);
+            InputStreamReader lecture = new InputStreamReader(flux,TEXT_FILE_CHARSET);
             BufferedReader buff = new BufferedReader(lecture);
 
             String ligne;
@@ -105,7 +115,7 @@ public class PuzzleGenerator {
             buff.close();
 
         } catch (Exception e) {
-            throw new IllegalArgumentException("erreur avec le fichier d'entree");
+            throw new IllegalArgumentException("Erreur avec le fichier d'entree");
         }
     }
 
@@ -124,7 +134,7 @@ public class PuzzleGenerator {
     public static void main(String[] args) {
 
         String path = "files/worddle/dicesets/american.diceset";
-        PuzzleGenerator gen = new PuzzleGenerator(4, 4, path);
+        PuzzleGenerator gen = new PuzzleGenerator(5, 5, path);
         gen.printGrid();
 
     }
