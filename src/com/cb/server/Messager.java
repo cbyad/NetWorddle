@@ -10,6 +10,8 @@ public class Messager extends Thread {
     ArrayList<PlayerSession> playerSessions;
     ArrayList<String> messages;
 
+
+
     public Messager() {
         playerSessions = new ArrayList<>();
         messages = new ArrayList<>();
@@ -18,7 +20,7 @@ public class Messager extends Thread {
     public void run() {
         while (true) {
             try {
-                synchronized (this) { // attendre le signal avant d'envoyer le message
+                synchronized (this) { // attente de notification avant d'envoyer le message
                     wait();
                 }
                 while (!messages.isEmpty()) {

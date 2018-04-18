@@ -1,21 +1,58 @@
 package com.cb.server;
 
 
+import java.io.IOException;
+
 /**
  * Cette classe s'occupe de toutes les operations possible du jeu
  * comme se connecter , se deconnecter, proposer un mot,...
  */
 public class NetWorddleOperations {
 
-    private PuzzleGenerator generator ;
+    private NetWorddleGame netWorddleGame ;
 
-    public NetWorddleOperations(PuzzleGenerator generator){
-        this.generator=generator;
+    public NetWorddleOperations(NetWorddleGame netWorddleGame){
+        this.netWorddleGame=netWorddleGame;
     }
 
     public String connexion(PlayerSession playerSession, String  username, String password){
-        return "";
+        if (netWorddleGame.players.containsKey(playerSession)){ // joueur deja present
+                if (netWorddleGame.players.containsValue(username)){
+
+                    if (netWorddleGame.playersInfo.containsKey(username) &&
+                            netWorddleGame.playersInfo.get(username).equals(password)){
+                        return "OK";
+                        //(identifiant,mot de passe) =(ok,ok)
+                    }
+
+                    else if (netWorddleGame.playersInfo.containsKey(username) &&
+                            !netWorddleGame.playersInfo.get(username).equals(password)){
+                        //(identifiant,mot de passe)=(ok,bad)
+
+                        return  "KO";
+                    }
+            }
+
+        }
+
+            netWorddleGame.players.put(playerSession,username);
+            netWorddleGame.playersInfo.put(username,password);
+            return "NEW";
+            // nouveau joueur --> nom connu du system
+
     }
+
+    public String deconnexion(PlayerSession playerSession){
+        String answer = null;
+        if (netWorddleGame.players.containsKey(playerSession)){
+            //String name
+            netWorddleGame.players.keySet().remove(playerSession);
+            answer="OK";
+        }
+        return answer;
+    }
+
+
 
 
     public String proposition(PlayerSession playerSession, String word){

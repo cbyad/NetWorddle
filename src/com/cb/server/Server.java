@@ -18,6 +18,7 @@ public class Server extends Thread {
     private PuzzleGenerator generator;
     private Messager messager;
     private NetWorddleOperations netWorddleOperations;
+    private NetWorddleGame netWorddleGame;
 
     protected int playerLimit; // de base on met a 2 mais pour le rendre plus generique
     private ExecutorService pool;
@@ -39,12 +40,16 @@ public class Server extends Thread {
             listen = new ServerSocket(PORT);
             pool = Executors.newFixedThreadPool(playerLimit);
             generator = new PuzzleGenerator(n, m, dicesPath);
-            netWorddleOperations= new NetWorddleOperations(generator);
-            messager = new Messager();
+
             this.playerLimit = playerLimit;
             playerSessions = new ArrayList<PlayerSession>();
             answerChecker = new AnswerChecker();
             answerChecker.setDictionary(dictionnaryPath);
+
+            messager = new Messager();
+            netWorddleGame= new NetWorddleGame(messager,generator,answerChecker);
+            netWorddleOperations= new NetWorddleOperations(netWorddleGame);
+
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -52,7 +57,7 @@ public class Server extends Thread {
         }
         System.out.println("En écoute sur le port : "+ PORT);
         this.start(); // appel de la fonction public void run() de la routine
-
+        netWorddleGame.start(); // demarrage du jeux !! ????
     }
 
 
@@ -63,16 +68,16 @@ public class Server extends Thread {
                     System.out.println("Attente de connexion...");
                     client = listen.accept();
 
-                        System.out.println(playerSessions.size());
-                    if (playerSessions.size() >= playerLimit) {
-                        System.out.println(playerSessions.size());
+                    if (playerSessions.size() > playerLimit) {
                         // refuser le client qui tente de se connecter
                         this.refuseClient(client);
+                        System.out.println("Le nomnre max de participants est atteint : "+playerSessions.size());
                     } else {
                         // ci signifie client i avec i appartenant a [0;playerLimit]
-                        PlayerSession ci = new PlayerSession(client,generator,netWorddleOperations);
+                        PlayerSession ci = new PlayerSession(client,netWorddleGame,netWorddleOperations);
                         playerSessions.add(ci);
                         pool.execute(ci);
+
                     }
                 }
 

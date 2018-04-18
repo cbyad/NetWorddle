@@ -7,26 +7,31 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * Thread s'occupant d'un seul client
+ * Thread s'occupant d'un seul client. Tache delegué par le Serveur pour permette une communication multi-threadée
  */
 public class PlayerSession extends Thread {
+    private int numQuery =0 ;
     boolean exit = false;
     BufferedReader input ;
     PrintWriter output ;
-    private Socket client ;
+    public Socket client ;
     private NetWorddleOperations netWorddleOperations;
-    private PuzzleGenerator generator;
+    private NetWorddleGame netWorddleGame;
 
 
-
-    public PlayerSession(Socket client, PuzzleGenerator generator , NetWorddleOperations netWorddleOperations){
+    /**
+     *
+     * @param client
+     * @param netWorddleGame
+     * @param netWorddleOperations
+     */
+    public PlayerSession(Socket client, NetWorddleGame netWorddleGame , NetWorddleOperations netWorddleOperations){
         this.client=client;
         try {
             input=new BufferedReader(new InputStreamReader(client.getInputStream()));
             output= new PrintWriter(client.getOutputStream(),true);
             this.netWorddleOperations =netWorddleOperations;
-            this.generator=generator;
-            //output.println("BIENVENU");
+            this.netWorddleGame=netWorddleGame;
         } catch (IOException e) {
             System.out.println("Probleme Joueur deconnecté");
             System.out.println(e.getMessage());
@@ -63,11 +68,19 @@ public class PlayerSession extends Thread {
 
     }
 
+    /**
+     *
+     * @param line la requete a traiter
+     * @return la reponse adequate
+     * @throws IOException
+     */
     public synchronized String queryManager(String line) throws IOException {
         String[] parse = line.split(",");
         switch (parse[0]) {
             case "connect":
                 return netWorddleOperations.connexion(this,parse[1],parse[2]);
+            case "disconnect":
+                return netWorddleOperations.deconnexion(this);
 
             default:
                 return null ;
