@@ -2,7 +2,6 @@ package com.cb.server;
 
 import com.cb.checker.AnswerChecker;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -12,27 +11,31 @@ public class NetWorddleGame extends Thread {
 
     private PuzzleGenerator generator ;
     private AnswerChecker answerChecker;
-    private Messager messager;
-    public HashMap<PlayerSession,String> players; // liste des joueurs avec (socket,identifiant)
-    public HashMap<String,String> playersInfo;
-    char [][] gameGrid;
-    int time= 0;
-    public HashMap<String,Integer> scores ;
-    int playersNumbers =0 ;
+    protected Messager messager;
+    protected HashMap<PlayerSession,String> playersSessionUsername; // liste des joueurs avec (socket,identifiant)
+    protected HashMap<String,String> playersInfo;
+    protected char [][] gameGrid;
+    protected int gameTime;
+    protected HashMap<String,Integer> scores ;
+    protected int playersNumbers;
+    protected int playerLimit;
     /**
      *
-     * @param messager sert de diffuseur de message aux joueurs en ligne
+     * @param messager sert de diffuseur de messages aux joueurs en ligne
      * @param generator grille de jeu
      * @param answerChecker checker de proposition
      */
-    public NetWorddleGame(Messager messager, PuzzleGenerator generator, AnswerChecker answerChecker){
+    public NetWorddleGame(Messager messager, PuzzleGenerator generator, AnswerChecker answerChecker,int gameTime,int playerLimit){
         this.messager=messager;
         this.generator=generator;
         this.answerChecker= answerChecker;
-        players=new HashMap<>();
+        this.gameTime=gameTime;
+        playersSessionUsername=new HashMap<>();
         playersInfo=new HashMap<>();
         initScore();
         gameGrid=generator.getGrid();
+        playersNumbers=0;
+        this.playerLimit=playerLimit;
 
         messager.start(); // demarrer le messager
     }
@@ -45,8 +48,37 @@ public class NetWorddleGame extends Thread {
        playersInfo.keySet().forEach(elt-> scores.put(elt,0));
     }
 
+    public String gridToString(){
+        StringBuilder str = new StringBuilder();
+        for (int i=0;i<gameGrid.length;i++){
+            for (int j =0;j<gameGrid[i].length;j++){
+                str.append(gameGrid[i][j]);
+                str.append(",");
+            }
+        }
+        return str.deleteCharAt(str.length()-1).toString();
+    }
+
     public void run(){
         while(true){
+
+            synchronized (this){
+                try {
+                    wait();
+                    //attendre d'atteindre le nombre de joueurs avant de commencer la partie
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+                String gameStarted="start"+","+gameTime+","+gridToString();
+                messager.messages.add(gameStarted);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+                messager.messages.add("fin");
+
 
         }
     }

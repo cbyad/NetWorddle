@@ -7,7 +7,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 /**
- * Thread s'occupant d'un seul client. Tache delegué par le Serveur pour permette une communication multi-threadée
+ * Thread s'occupant d'un seul client.
+ * Tache delegué par le Serveur pour permette une communication multi-threadée
  */
 public class PlayerSession extends Thread {
     private int numQuery =0 ;
@@ -48,18 +49,19 @@ public class PlayerSession extends Thread {
 
             while(!exit){
                 line = input.readLine();
-                response = queryManager(line);
+                response = queryHandler(line);
 
-                /*
-                synchronized (wordle.players) {
-                    worddle.players.notify();
+
+                synchronized (netWorddleGame.playersSessionUsername) {
+                    netWorddleGame.playersSessionUsername.notify();
                 }
-                */
+
                 sendMessage(response);
+                System.out.println(exit);
             }
-            client.close();
             input.close();
             output.close();
+            client.close();
         }
 
         catch(IOException e){
@@ -70,27 +72,52 @@ public class PlayerSession extends Thread {
 
     /**
      *
-     * @param line la requete a traiter
+     * @param query la requete a traiter
      * @return la reponse adequate
      * @throws IOException
      */
-    public synchronized String queryManager(String line) throws IOException {
-        String[] parse = line.split(",");
+    public synchronized String queryHandler(String query) throws IOException {
+        String[] parse = query.split(",");
+
         switch (parse[0]) {
             case "connect":
                 return netWorddleOperations.connexion(this,parse[1],parse[2]);
-            case "disconnect":
+            case "disconnect": {
+                exit = true;
                 return netWorddleOperations.deconnexion(this);
+            }
+
+            case "proposition" :
+                return null ;
+
+            case "self_global":
+                return null;
+            case "global" :
+                return null;
+            case "best" :
+                return null;
 
             default:
                 return null ;
         }
     }
 
-
+    /**
+     * Envoyer un message au client et/ou couper la connexion
+     * @param message
+     * @throws IOException
+     */
     public void sendMessage(String message) throws IOException{
         if(message==null) return;
-        output.println(message);
+
+        switch (message){
+            case "KO" : {
+                output.println(message);
+                exit=true;
+            }
+            default:
+                output.println(message);
+        }
     }
 
 
