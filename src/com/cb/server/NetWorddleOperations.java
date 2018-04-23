@@ -2,14 +2,17 @@ package com.cb.server;
 
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
 
 /**
- * Cette classe traite toutes les operations possible du jeu
+ * Cette classe traite toutes les opérations possible du jeu
  * comme se connecter , se deconnecter, proposer un mot,...
  */
 public class NetWorddleOperations {
 
-    private NetWorddleGame netWorddleGame;
+    protected NetWorddleGame netWorddleGame;
 
     public NetWorddleOperations(NetWorddleGame netWorddleGame) {
         this.netWorddleGame = netWorddleGame;
@@ -23,7 +26,10 @@ public class NetWorddleOperations {
      */
     public String connexion(PlayerSession playerSession, String username, String password) {
 
-        if (netWorddleGame.playersInfo.containsKey(username)) { // joueur deja present
+        /**
+         * Joueur déja connu par le serveur
+         */
+        if (netWorddleGame.playersInfo.containsKey(username)) {
             if (netWorddleGame.playersInfo.get(username).equals(password)) {
                 return "OK"; //(id,mdp)=(ok,ok)
             } else
@@ -33,23 +39,23 @@ public class NetWorddleOperations {
             netWorddleGame.playersInfo.put(username, password);
             netWorddleGame.playersNumbers++;
             netWorddleGame.scores.put(username, 0);
+            netWorddleGame.wordsAlreadyFound.put(playerSession,new ArrayList<>());
 
             synchronized (netWorddleGame.messager) {
-            netWorddleGame.messager.messages.add(username + " vient de se connecter");
+            netWorddleGame.messager.messages.add(username + " is connected");
                 netWorddleGame.messager.notify();
             }
             netWorddleGame.messager.playerSessions.add(playerSession);
 
-            //Je ne suis pas sure de ca pour le moment
+            /**
+             * on a atteint de le nombre de joueurs voulu on peut débuter la partie
+             */
             if (netWorddleGame.playersNumbers==netWorddleGame.playerLimit){
-                //on a atteint de le nombre de joueur voulu on peut debuter la partie
                 synchronized (netWorddleGame){
                     netWorddleGame.notify();
                 }
             }
-
             return "NEW";
-            // nouveau joueur --> nom connu du system
         }
     }
 
@@ -68,19 +74,95 @@ public class NetWorddleOperations {
 
         netWorddleGame.messager.playerSessions.remove(playerSession);
         synchronized (netWorddleGame.messager){
-            netWorddleGame.messager.messages.add(username+" vient de quitter");
+            netWorddleGame.messager.messages.add(username+" left the game");
             netWorddleGame.messager.notify();
         }
 
         return "OK";
     }
 
-
+    /**
+     *
+     * @param playerSession
+     * @param word
+     * @return
+     */
     public String proposition(PlayerSession playerSession, String word) {
-        return "";
+        String notValid= "score,0";
+        if (word.length()>0) {
+
+            if (netWorddleGame.answerChecker.isValidAnswer(netWorddleGame.gameGrid,word)){
+                // Si le mot a deja été trouvé par le meme joueur on ne le rajoute pas
+                boolean isPresent=netWorddleGame.wordsAlreadyFound.get(playerSession).contains(word);
+                if (isPresent){
+                    return notValid;
+                }
+
+                int score =giveScore(word);
+                String username = netWorddleGame.playersSessionUsername.get(playerSession);
+                netWorddleGame.scores.put(username,netWorddleGame.scores.get(username)+score);
+                ArrayList<String> newArray = netWorddleGame.wordsAlreadyFound.get(playerSession);
+                newArray.add(word);
+                netWorddleGame.wordsAlreadyFound.put(playerSession,newArray);
+                return "score"+","+score;
+            }
+            else return notValid;
+        }
+        return notValid;
+
     }
 
-    private int giveScore(String word) {
+    /**
+     *
+     * @param playerSession
+     * @return le score global cumulé par un utilisateur
+     */
+    public String getSelfGlobal(PlayerSession playerSession) {
+        String username = netWorddleGame.playersSessionUsername.get(playerSession);
+        int globalScore =netWorddleGame.scores.get(username);
+        return "score"+","+username+","+globalScore;
+    }
+
+    /**
+     *
+     * @param playerSession
+     * @param s
+     * @return
+     */
+    public String getGlobalAny(PlayerSession playerSession, String s) {
+        int globalScore =netWorddleGame.scores.get(s);
+        return "score"+","+s+","+globalScore;
+    }
+
+    // recuperer la session du joueur en fonction de son nom
+    public  PlayerSession getKey(String value){
+        for (Map.Entry<PlayerSession,String> entry : netWorddleGame.playersSessionUsername.entrySet()){
+            if (Objects.equals(value,entry.getValue()))
+                return entry.getKey();
+        }
+        return null ;
+    }
+
+    /**
+     *
+     * @param playerSession
+     * @param name
+     * @param message
+     * @throws IOException
+     */
+    public void sendPrivateMessage(PlayerSession playerSession,String name, String message) throws IOException {
+        PlayerSession cible = getKey(name);
+        if (cible!=null){
+        cible.sendMessage(message);
+        }
+    }
+
+    /**
+     *
+     * @param word
+     * @return le score du mot
+     */
+    public int giveScore(String word) {
         int size = word.length();
         if (size == 3 || size == 4) return 1;
         if (size == 5) return 2;

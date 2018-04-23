@@ -16,8 +16,8 @@ public class PlayerSession extends Thread {
     BufferedReader input ;
     PrintWriter output ;
     public Socket client ;
-    private NetWorddleOperations netWorddleOperations;
-    private NetWorddleGame netWorddleGame;
+    protected NetWorddleOperations netWorddleOperations;
+    protected NetWorddleGame netWorddleGame;
 
 
     /**
@@ -51,13 +51,12 @@ public class PlayerSession extends Thread {
                 line = input.readLine();
                 response = queryHandler(line);
 
-
                 synchronized (netWorddleGame.playersSessionUsername) {
                     netWorddleGame.playersSessionUsername.notify();
                 }
 
                 sendMessage(response);
-                System.out.println(exit);
+                //System.out.println(exit);
             }
             input.close();
             output.close();
@@ -88,14 +87,20 @@ public class PlayerSession extends Thread {
             }
 
             case "proposition" :
-                return null ;
+                return netWorddleOperations.proposition(this,parse[1]);
 
-            case "self_global":
-                return null;
+            //option ajouté pour connaitre son score
+            case "self":
+                return netWorddleOperations.getSelfGlobal(this);
+
+            //option ajouté pour connaitre le score global d'un joueur quelconque
             case "global" :
-                return null;
+                return netWorddleOperations.getGlobalAny(this,parse[1]);
+
             case "best" :
                 return null;
+
+            case "send" : netWorddleOperations.sendPrivateMessage(this,parse[1],parse[2]);
 
             default:
                 return null ;
@@ -119,8 +124,6 @@ public class PlayerSession extends Thread {
                 output.println(message);
         }
     }
-
-
 
 
 }

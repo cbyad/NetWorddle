@@ -2,6 +2,8 @@ package com.cb.server;
 
 import com.cb.checker.AnswerChecker;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -9,33 +11,37 @@ import java.util.HashMap;
  */
 public class NetWorddleGame extends Thread {
 
-    private PuzzleGenerator generator ;
-    private AnswerChecker answerChecker;
+    protected PuzzleGenerator generator;
+    protected AnswerChecker answerChecker;
     protected Messager messager;
-    protected HashMap<PlayerSession,String> playersSessionUsername; // liste des joueurs avec (socket,identifiant)
-    protected HashMap<String,String> playersInfo;
-    protected char [][] gameGrid;
+    protected HashMap<String, String> playersInfo;
+    protected HashMap<PlayerSession, String> playersSessionUsername; // liste des joueurs avec (socket,identifiant)
+    protected HashMap<PlayerSession,ArrayList<String>> wordsAlreadyFound;
+    protected HashMap<String, Integer> scores;
+    protected char[][] gameGrid;
     protected int gameTime;
-    protected HashMap<String,Integer> scores ;
     protected int playersNumbers;
     protected int playerLimit;
+    protected boolean endGame;
+
     /**
-     *
-     * @param messager sert de diffuseur de messages aux joueurs en ligne
-     * @param generator grille de jeu
-     * @param answerChecker checker de proposition
+     * @param messager      sert de diffuseur de messages aux joueurs en ligne
+     * @param generator     grille de jeu
+     * @param answerChecker verificateur de proposition
      */
-    public NetWorddleGame(Messager messager, PuzzleGenerator generator, AnswerChecker answerChecker,int gameTime,int playerLimit){
-        this.messager=messager;
-        this.generator=generator;
-        this.answerChecker= answerChecker;
-        this.gameTime=gameTime;
-        playersSessionUsername=new HashMap<>();
-        playersInfo=new HashMap<>();
+    public NetWorddleGame(Messager messager, PuzzleGenerator generator, AnswerChecker answerChecker, int gameTime, int playerLimit) {
+        this.messager = messager;
+        this.generator = generator;
+        this.answerChecker = answerChecker;
+        this.gameTime = gameTime;
+        playersSessionUsername = new HashMap<>();
+        playersInfo = new HashMap<>();
         initScore();
-        gameGrid=generator.getGrid();
-        playersNumbers=0;
-        this.playerLimit=playerLimit;
+        gameGrid = generator.getGrid();
+        playersNumbers = 0;
+        this.playerLimit = playerLimit;
+        endGame = false;
+        wordsAlreadyFound= new HashMap<>();
 
         messager.start(); // demarrer le messager
     }
@@ -43,46 +49,116 @@ public class NetWorddleGame extends Thread {
     /**
      * Mettre tous les scores a 0
      */
-    public void initScore(){
-        scores=new HashMap<>();
-       playersInfo.keySet().forEach(elt-> scores.put(elt,0));
+    public void initScore() {
+        scores = new HashMap<>();
+        playersInfo.keySet().forEach(player -> scores.put(player, 0));
     }
 
-    public String gridToString(){
+    /**
+     * Convertir la grille char[][] en chaine de caractere pour respecter le protocole de
+     * communication
+     * @return
+     */
+    public String gridToString() {
         StringBuilder str = new StringBuilder();
-        for (int i=0;i<gameGrid.length;i++){
-            for (int j =0;j<gameGrid[i].length;j++){
+        for (int i = 0; i < gameGrid.length; i++) {
+            for (int j = 0; j < gameGrid[i].length; j++) {
                 str.append(gameGrid[i][j]);
                 str.append(",");
             }
         }
-        return str.deleteCharAt(str.length()-1).toString();
+        return str.deleteCharAt(str.length() - 1).toString();
     }
 
-    public void run(){
-        while(true){
+    public long toMilliSecond(){
+        return gameTime*1000;
+    }
 
-            synchronized (this){
+    public void gameEndedMessage(){
+        PlayerSession p1 = (PlayerSession) playersSessionUsername.keySet().toArray()[0];
+        PlayerSession p2 = (PlayerSession) playersSessionUsername.keySet().toArray()[1];
+
+        String username1 = playersSessionUsername.get(p1);
+        String username2 = playersSessionUsername.get(p2);
+
+        StringBuilder msg1 = new StringBuilder();
+        StringBuilder msg2 = new StringBuilder();
+
+        wordsAlreadyFound.get(p2).forEach( word-> {
+            msg1.append(word);
+            msg1.append("/");
+            msg1.append(p2.netWorddleOperations.giveScore(word));
+            msg1.append(",");
+        } );
+        msg1.deleteCharAt(msg1.length()-1);
+
+        wordsAlreadyFound.get(p1).forEach( word-> {
+            msg2.append(word);
+            msg2.append("/");
+            msg2.append(p1.netWorddleOperations.giveScore(word));
+            msg2.append(",");
+        } );
+
+        msg2.deleteCharAt(msg2.length()-1);
+
+        String finalMsg1 ="stop"+","+msg1.toString();
+        String finalMsg2 ="stop"+","+msg2.toString();
+
+        try {
+            p1.netWorddleOperations.sendPrivateMessage(p1,username2,finalMsg1);
+            p2.netWorddleOperations.sendPrivateMessage(p2,username1,finalMsg2);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void run() {
+        while (!endGame) {
+
+            synchronized (this) {
                 try {
+                    /**
+                     * attendre d'atteindre le nombre de joueurs avant de commencer la partie
+                     */
                     wait();
-                    //attendre d'atteindre le nombre de joueurs avant de commencer la partie
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-                String gameStarted="start"+","+gameTime+","+gridToString();
-                messager.messages.add(gameStarted);
+            String gameStarted = "start" + "," + gameTime + "," + gridToString();
+
+            /**
+             * On envoie la grille de jeu, le temps aux differents joueurs
+             */
+            synchronized (messager) {
+            messager.messages.add(gameStarted);
+            messager.notify();
+            }
+
+            /**
+             * Tant que le temps de jeux n'est pas écoulé, on reste a l'ecoute des propositons les propositions
+             */
             try {
-                Thread.sleep(1000);
+                Thread.sleep(toMilliSecond());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-                messager.messages.add("fin");
 
+            /**
+             * Parcourir toutes les sessions de joueurs et leur envoyer un message
+             * qui correspond au score des adversaires
+             */
 
+            gameEndedMessage();
+
+            synchronized (messager) {
+                messager.messages.add("game ended ");
+                messager.notify();
+            }
+            endGame=true;
         }
     }
-
 
 
 }

@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Envoyer les informations aux joueurs comme le score ou des messages ...
+ * Envoyer les informations aux joueurs comme des messages ...
  */
 public class Messager extends Thread {
     ArrayList<PlayerSession> playerSessions;
     ArrayList<String> messages;
-
-
 
     public Messager() {
         playerSessions = new ArrayList<>();
@@ -20,7 +18,10 @@ public class Messager extends Thread {
     public void run() {
         while (true) {
             try {
-                synchronized (this) { // attente de notification avant d'envoyer le message
+                /**
+                 * attente de notification avant d'envoyer le message
+                 */
+                synchronized (this) {
                     wait();
                 }
                 while (!messages.isEmpty()) {
@@ -33,6 +34,10 @@ public class Messager extends Thread {
         }
     }
 
+    /**
+     * Envoi message a tous les joueurs
+     * @param message
+     */
     public void sendMessageToAll(String message){
         playerSessions.forEach(player -> {
             try {

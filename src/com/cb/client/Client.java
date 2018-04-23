@@ -1,9 +1,7 @@
 package com.cb.client;
 
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.Socket;
 
 
@@ -18,12 +16,14 @@ public class Client {
 
         try {
             s = new Socket("localhost", PORT);
-            DataInputStream input = new DataInputStream(s.getInputStream());
-            PrintStream output = new PrintStream(s.getOutputStream());
 
-            System.out.println("Connexion etablie : " +
-                    s.getInetAddress() + " port : " + s.getPort());
+            BufferedReader input=new BufferedReader(new InputStreamReader(s.getInputStream()));
+            PrintWriter output= new PrintWriter(s.getOutputStream(),true);
+
+
+            System.out.println("Connexion etablie : " + s.getInetAddress() + " port : " + s.getPort());
             String ligne ;
+
             char c;
 
             while (true) {
@@ -31,15 +31,16 @@ public class Client {
                 while ((c = (char) System.in.read()) != '\n'){
                     ligne = ligne + c;
                 }
-                output.println(ligne);
-                output.flush();
-                ligne = input.readLine();
-                if (ligne == null) {
+                output.println(ligne); // envoie au serveur
+
+                String answer = input.readLine(); // lire la reponse
+                if (answer == null) {
                     System.out.println("Connexion terminee");
                     break;
                 }
-                System.out.println("" + ligne);
+                System.out.println("" + answer);
             }
+
         } catch (IOException e) {
             System.err.println(e);
         } finally {

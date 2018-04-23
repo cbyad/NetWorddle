@@ -13,10 +13,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-public class HomeViewGame extends Application {
+public class NetWorddleViewGame extends Application {
     //Declarer tous les composents graphiques ici apres pour avoir main dessu
     TextField usernameField ;
     PasswordField passwordField ;
+
     Button connect ;
     Button disconnect;
     TextField propositionField ;
@@ -39,14 +40,12 @@ public class HomeViewGame extends Application {
 
 
         BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: #ff9999");
         root.setLeft(userConnexionPane());
         root.setRight(buildGridPane(5,5,grid));
 
-
-
         // root.getChildren().add(buildGridPane(7,7,grid));
         Scene scene = new Scene(root);
-
         primaryStage.setTitle("NetWorddle");
         primaryStage.setScene(scene);
         primaryStage.setWidth(600);
@@ -54,8 +53,6 @@ public class HomeViewGame extends Application {
         primaryStage.setHeight(450);
         primaryStage.show();
         primaryStage.setOnCloseRequest(e -> Platform.exit());
-
-
 
 
     }
@@ -70,36 +67,42 @@ public class HomeViewGame extends Application {
             for (int j = 0; j < m; j++) {
                 gridTab[i][j] = new Button(grid[i][j] + "");
                 gridTab[i][j].setPrefSize(70, 70);
+                gridTab[i][j].setStyle("-fx-text-fill: #000000");
+                gridTab[i][j].setFont(new Font(30));
+                //gridTab[i][j].setDisable(true);
                 gridPane.add(gridTab[i][j], i, j);
-                int finalJ = j;
-                int finalI = i;
-                gridTab[i][j].setOnMouseClicked(e->System.out.println((gridTab[finalI][finalJ]).getText()));
+
             }
 
         }
-
+        //gridPane.setStyle("-fx-background-color: #3366ff");
         return gridPane;
     }
 
     //Left
     public VBox userConnexionPane() {
         Label username = new Label("Username ");
-        username.setFont(new Font(20));
+        username.setFont(new Font(15));
         this.usernameField = new TextField();
 
         Label password = new Label("Password ");
-        password.setFont(new Font(20));
+        password.setFont(new Font(15));
         this.passwordField = new PasswordField();
 
         this.connect = new Button("connect");
+        connect.setFont(new Font(10));
         this.disconnect = new Button("disconnect");
+        disconnect.setFont(new Font(10));
 
         //TextArea channel = new TextArea();
         this.propositionField = new TextField();
         this.propose = new Button("propose");
+        propose.setFont(new Font(10));
         HBox hbox= new HBox(propositionField,propose);
 
         VBox vbox = new VBox(username, usernameField, password, passwordField, connect,disconnect,hbox);
+        //vbox.setStyle("-fx-background-color: #ff9999");
+
         return vbox;
     }
 
