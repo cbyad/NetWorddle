@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
  * Serveur de jeu
  */
 public class Server extends Thread {
-
+    public final static String PATH = "files/worddle/dicesets/american.diceset";
     protected static final int PORT = 2018; // mettre en ligne de commande plus tard
     protected static final int NB_PLAYERS=2 ;
     private ServerSocket listen;
@@ -53,14 +53,14 @@ public class Server extends Thread {
             answerChecker.setDictionary(dictionnaryPath);
 
             messager = new Messager();
-            netWorddleGame= new NetWorddleGame(messager,generator,answerChecker,gameTime,playerLimit);
+            netWorddleGame= new NetWorddleGame(messager,generator,answerChecker,gameTime,playerLimit,n,m);
             netWorddleOperations= new NetWorddleOperations(netWorddleGame);
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
             System.exit(-1);
         }
-        System.out.println("En écoute sur le port : "+ PORT);
+        System.out.println("Listening on port : "+ PORT);
         this.start(); // appel de la fonction public void run() de la routine
         netWorddleGame.start(); // demarrage du jeux
     }
@@ -70,19 +70,18 @@ public class Server extends Thread {
             try {
                 Socket client;
                 while (true) {
-                    System.out.println("Attente de connexion...");
+                    System.out.println("Waiting for connection...");
                     client = listen.accept();
 
                     if (playerSessions.size() >= playerLimit) {
                         // refuser le client qui tente de se connecter
                         this.refuseClient(client);
-                        System.out.println("Le Nombre max de participants est atteint : "+playerSessions.size());
+                        System.out.println("Max number of players reached : "+playerSessions.size());
                     } else {
                         // ci signifie client i avec i appartenant a [0;playerLimit]
                         PlayerSession ci = new PlayerSession(client,netWorddleGame,netWorddleOperations);
                         playerSessions.add(ci);
                         pool.execute(ci);
-
                     }
                 }
 
@@ -93,8 +92,12 @@ public class Server extends Thread {
 
     }
 
+    /**
+     * Refuser le client quand le nombre de connexion possible est atteint
+     * @param socket
+     * @throws IOException
+     */
     private void refuseClient(Socket socket) throws IOException {
-        System.out.println("refus en cours...");
         PrintWriter out = new PrintWriter(socket.getOutputStream(),true);
         out.println("KO/");
         out.close();
@@ -102,16 +105,17 @@ public class Server extends Thread {
     }
 
 
-
     public static void main(String[] args) {
-        String path = "files/worddle/dicesets/american.diceset";
-        String dict = "files/worddle/dictionaries/american-english.dict";
-       // Scanner sc = new Scanner(System.in);
-        //System.out.println("Nombre maximum de joueurs");
-        //int nb = sc.nextInt();
-        Server s =new Server( 4, 4,120, dict, path);
-        s.generator.printGrid();
-       // sc.close();
+        String dict = "files/worddle/dictionaries/american-english.dict"; // par defauft
+        //String dict = args[3];  decommenté pour passer un autre dictionnaire en argument
+        int n = Integer.valueOf(args[0]);
+        int m = Integer.valueOf(args[1]);
+        int time = Integer.valueOf(args[2]);
+
+
+        Server s =new Server( n, m,time, dict, PATH);
+        //s.generator.printGrid();
+
     }
 
 }

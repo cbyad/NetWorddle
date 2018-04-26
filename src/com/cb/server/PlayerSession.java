@@ -12,7 +12,7 @@ import java.net.Socket;
  */
 public class PlayerSession extends Thread {
     private int numQuery =0 ;
-    boolean exit = false;
+     boolean exit = false;
     BufferedReader input ;
     PrintWriter output ;
     public Socket client ;
@@ -43,10 +43,8 @@ public class PlayerSession extends Thread {
 
     public void run(){
         try{
-
             String line;
             String response;
-
             while(!exit){
                 line = input.readLine();
                 response = queryHandler(line);
@@ -54,9 +52,7 @@ public class PlayerSession extends Thread {
                 synchronized (netWorddleGame.playersSessionUsername) {
                     netWorddleGame.playersSessionUsername.notify();
                 }
-
                 sendMessage(response);
-                //System.out.println(exit);
             }
             input.close();
             output.close();
@@ -81,6 +77,7 @@ public class PlayerSession extends Thread {
         switch (parse[0]) {
             case "connect":
                 return netWorddleOperations.connexion(this,parse[1],parse[2]);
+
             case "disconnect": {
                 exit = true;
                 return netWorddleOperations.deconnexion(this);
@@ -101,6 +98,7 @@ public class PlayerSession extends Thread {
                 return null;
 
             case "send" : netWorddleOperations.sendPrivateMessage(this,parse[1],parse[2]);
+
 
             default:
                 return null ;
@@ -124,6 +122,4 @@ public class PlayerSession extends Thread {
                 output.println(message);
         }
     }
-
-
 }

@@ -23,13 +23,15 @@ public class NetWorddleGame extends Thread {
     protected int playersNumbers;
     protected int playerLimit;
     protected boolean endGame;
+    protected int n;
+    protected int m;
 
     /**
      * @param messager      sert de diffuseur de messages aux joueurs en ligne
      * @param generator     grille de jeu
      * @param answerChecker verificateur de proposition
      */
-    public NetWorddleGame(Messager messager, PuzzleGenerator generator, AnswerChecker answerChecker, int gameTime, int playerLimit) {
+    public NetWorddleGame(Messager messager, PuzzleGenerator generator, AnswerChecker answerChecker, int gameTime, int playerLimit,int n,int m) {
         this.messager = messager;
         this.generator = generator;
         this.answerChecker = answerChecker;
@@ -42,7 +44,8 @@ public class NetWorddleGame extends Thread {
         this.playerLimit = playerLimit;
         endGame = false;
         wordsAlreadyFound= new HashMap<>();
-
+        this.n=n;
+        this.m=m;
         messager.start(); // demarrer le messager
     }
 
@@ -84,22 +87,29 @@ public class NetWorddleGame extends Thread {
         StringBuilder msg1 = new StringBuilder();
         StringBuilder msg2 = new StringBuilder();
 
-        wordsAlreadyFound.get(p2).forEach( word-> {
-            msg1.append(word);
-            msg1.append("/");
-            msg1.append(p2.netWorddleOperations.giveScore(word));
-            msg1.append(",");
-        } );
-        msg1.deleteCharAt(msg1.length()-1);
 
-        wordsAlreadyFound.get(p1).forEach( word-> {
-            msg2.append(word);
-            msg2.append("/");
-            msg2.append(p1.netWorddleOperations.giveScore(word));
-            msg2.append(",");
-        } );
+        if (!wordsAlreadyFound.get(p2).isEmpty()) {
+            wordsAlreadyFound.get(p2).stream().filter(word -> word.length() > 2).forEach(word -> {
+                msg1.append(word);
+                msg1.append("/");
+                msg1.append(p2.netWorddleOperations.giveScore(word));
+                msg1.append(",");
+            });
+            int lastChar1 = msg1.length() - 1;
+            msg1.deleteCharAt(lastChar1);
+        }
 
-        msg2.deleteCharAt(msg2.length()-1);
+        if (!wordsAlreadyFound.get(p1).isEmpty()) {
+            wordsAlreadyFound.get(p1).stream().filter(word -> word.length() > 2).forEach(word -> {
+                msg2.append(word);
+                msg2.append("/");
+                msg2.append(p1.netWorddleOperations.giveScore(word));
+                msg2.append(",");
+            });
+
+            int lastChar2 = msg2.length() - 1;
+            msg2.deleteCharAt(lastChar2);
+        }
 
         String finalMsg1 ="stop"+","+msg1.toString();
         String finalMsg2 ="stop"+","+msg2.toString();
@@ -126,7 +136,7 @@ public class NetWorddleGame extends Thread {
                     e.printStackTrace();
                 }
             }
-            String gameStarted = "start" + "," + gameTime + "," + gridToString();
+            String gameStarted = "start" + "," + gameTime + ","+n+ ","+m+","+gridToString();
 
             /**
              * On envoie la grille de jeu, le temps aux differents joueurs
@@ -157,6 +167,7 @@ public class NetWorddleGame extends Thread {
                 messager.notify();
             }
             endGame=true;
+            playersSessionUsername.keySet().stream().forEach(p-> p.exit=true);
         }
     }
 

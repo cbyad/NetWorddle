@@ -1,0 +1,78 @@
+<project name="netWorddle" default="compile" basedir=".">
+  <description>
+
+  </description>
+  <property name="src" location="src"/>
+  <property name="build" location="out"/>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+          description="compile the source " >
+    <javac debug="true" classpath="${build}/:jars/*" srcdir="${src}" excludes="" destdir="${build}"/>
+  </target>
+
+
+  <property name="arg0" value=""/>
+  <property name="arg1" value=""/>
+  <property name="arg2" value=""/>
+  <property name="arg3" value=""/>
+  <target name="server" depends="compile">
+    <echo>================ Run Server  ================</echo>
+    <java classname="com.cb.server.Server"
+          classpath="${build}/:jars/*" fork="true">
+      <arg value="${arg0}"/>
+      <arg value="${arg1}"/>
+      <arg value="${arg2}"/>
+      <arg value="${arg3}"/>
+
+    </java>
+
+
+
+  </target>
+
+  <target name="game" depends="compile">
+    <echo>================ Run NetWorddle  ================</echo>
+    <java classname="com.cb.client.graphic.NetWorddleIHM"
+          classpath="${build}/:jars/*" fork="true">
+    </java>
+  </target>
+
+
+  <target name="client" depends="compile">
+    <echo>================ Run console client Main ================</echo>
+    <java classname="com.cb.client.Client"
+          classpath="${build}/:jars/*" fork="true">
+
+      <!--
+      <arg value="-nbPoints"/>
+      <arg value="1000"/>
+      <arg value="-edgeThreshold"/>
+      <arg value="55"/>
+              <arg value="-proxyPPTI"/>
+      -->
+    </java>
+  </target>
+
+  <target name="dist" depends="init,clean"
+          description="Generer la distribution" >
+    <!-- tout mettre dans l'archive -->
+    <jar basedir="." jarfile="NetWorddle.jar"/>
+  </target>
+
+  <target name="clean"
+          description="clean up" >
+    <echo>================ Removing temporary files... ================</echo>
+    <delete verbose="true"> <!-- Remove all *~ files -->
+      <fileset dir="${basedir}" defaultexcludes="no">
+        <include name="**/*~"/>
+      </fileset>
+    </delete>
+    <echo>================ Removing build directory ================</echo>
+    <delete dir="${build}"/>
+  </target>
+</project>

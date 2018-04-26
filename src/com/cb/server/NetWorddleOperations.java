@@ -48,7 +48,7 @@ public class NetWorddleOperations {
             netWorddleGame.messager.playerSessions.add(playerSession);
 
             /**
-             * on a atteint de le nombre de joueurs voulu on peut débuter la partie
+             * on a atteint de le nombre de joueurs voulu (2 dans notre jeux) on peut débuter la partie
              */
             if (netWorddleGame.playersNumbers==netWorddleGame.playerLimit){
                 synchronized (netWorddleGame){
@@ -71,13 +71,13 @@ public class NetWorddleOperations {
         netWorddleGame.playersSessionUsername.remove(playerSession, username);
         netWorddleGame.playersInfo.remove(username, password);
         netWorddleGame.playersNumbers--;
-
+        netWorddleGame.wordsAlreadyFound.remove(playerSession);
         netWorddleGame.messager.playerSessions.remove(playerSession);
+
         synchronized (netWorddleGame.messager){
             netWorddleGame.messager.messages.add(username+" left the game");
             netWorddleGame.messager.notify();
         }
-
         return "OK";
     }
 
@@ -89,10 +89,13 @@ public class NetWorddleOperations {
      */
     public String proposition(PlayerSession playerSession, String word) {
         String notValid= "score,0";
-        if (word.length()>0) {
 
+        if (word.length()>1) {
             if (netWorddleGame.answerChecker.isValidAnswer(netWorddleGame.gameGrid,word)){
-                // Si le mot a deja été trouvé par le meme joueur on ne le rajoute pas
+
+                /**
+                 * Si le mot a deja été trouvé par le meme joueur on ne le rajoute pas
+                 */
                 boolean isPresent=netWorddleGame.wordsAlreadyFound.get(playerSession).contains(word);
                 if (isPresent){
                     return notValid;
@@ -115,7 +118,7 @@ public class NetWorddleOperations {
     /**
      *
      * @param playerSession
-     * @return le score global cumulé par un utilisateur
+     * @return le score global cumulé par un soi même
      */
     public String getSelfGlobal(PlayerSession playerSession) {
         String username = netWorddleGame.playersSessionUsername.get(playerSession);
@@ -127,14 +130,18 @@ public class NetWorddleOperations {
      *
      * @param playerSession
      * @param s
-     * @return
+     * @return le score global cumulé par un utilisateur quelconque
      */
     public String getGlobalAny(PlayerSession playerSession, String s) {
         int globalScore =netWorddleGame.scores.get(s);
         return "score"+","+s+","+globalScore;
     }
 
-    // recuperer la session du joueur en fonction de son nom
+    /**
+     * Recuperer la session du joueur en fonction de son nom
+     * @param value
+     * @return
+     */
     public  PlayerSession getKey(String value){
         for (Map.Entry<PlayerSession,String> entry : netWorddleGame.playersSessionUsername.entrySet()){
             if (Objects.equals(value,entry.getValue()))
@@ -144,7 +151,8 @@ public class NetWorddleOperations {
     }
 
     /**
-     *
+     * Envoi d'un message privé entre joueur
+     * ( -_- on peut tricher avec ça oups! j'ai rien dit :p)
      * @param playerSession
      * @param name
      * @param message
@@ -158,7 +166,7 @@ public class NetWorddleOperations {
     }
 
     /**
-     *
+     * Strategie de notation des mots . Juste un coix d'implem on peut la changer
      * @param word
      * @return le score du mot
      */

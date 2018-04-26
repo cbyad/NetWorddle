@@ -1,56 +1,82 @@
 package com.cb.client;
 
-
 import java.io.*;
 import java.net.Socket;
-
+import java.util.Scanner;
 
 /**
- * Client = un joueur de NetWorddle
+ * Client => un joueur de NetWorddle (en mode console)
  */
 public class Client {
     protected static final int PORT = 2018;
+    Socket clientSocket;
+    BufferedReader in;
+    PrintWriter out;
+    Scanner sc = new Scanner(System.in);//pour lire à partir du clavier
 
-    public static void main(String[] args) {
-        Socket s = null;
+    public Client() {
 
         try {
-            s = new Socket("localhost", PORT);
+         /*
+         * les informations du serveur ( port et adresse IP ou nom d'hote
+         * 127.0.0.1 est l'adresse local de la machine
+         */
+            clientSocket = new Socket("127.0.0.1", 2018);
 
-            BufferedReader input=new BufferedReader(new InputStreamReader(s.getInputStream()));
-            PrintWriter output= new PrintWriter(s.getOutputStream(),true);
+            //flux pour envoyer
+            out = new PrintWriter(clientSocket.getOutputStream());
 
+            //flux pour recevoir
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            System.out.println("Connexion etablie : " + s.getInetAddress() + " port : " + s.getPort());
-            String ligne ;
+            System.out.println("Connection established : " + clientSocket.getInetAddress() + " port : "
+                    + clientSocket.getPort());
 
-            char c;
+            Thread send = new Thread(new Runnable() {
+                String msg;
 
-            while (true) {
-                ligne = "";
-                while ((c = (char) System.in.read()) != '\n'){
-                    ligne = ligne + c;
+                @Override
+                public void run() {
+                    while (true) {
+                        msg = sc.nextLine();
+                        out.println(msg);
+                        out.flush();
+                    }
                 }
-                output.println(ligne); // envoie au serveur
+            });
+            send.start();
 
-                String answer = input.readLine(); // lire la reponse
-                if (answer == null) {
-                    System.out.println("Connexion terminee");
-                    break;
+            Thread receive = new Thread(new Runnable() {
+                String msg;
+
+                @Override
+                public void run() {
+                    try {
+                        msg = in.readLine();
+                        while (msg != null) {
+                            System.out.println(msg);
+                            msg = in.readLine();
+                        }
+                        System.out.println("Server disconnected");
+                        out.close();
+                        clientSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-                System.out.println("" + answer);
-            }
+            });
+            receive.start();
 
         } catch (IOException e) {
-            System.err.println(e);
-        } finally {
-            try {
-                if (s != null) s.close();
-            } catch (IOException e2) {
-            }
+            e.printStackTrace();
         }
     }
+
+    public static void main(String[] args) {
+        new Client();
+    }
 }
+
 
 
 

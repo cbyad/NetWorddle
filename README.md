@@ -1,6 +1,36 @@
 # NetWorddle 
 
-## Architecture de communication 
-le __Messager__ est un thread qui sert de canal de communication entre les joueurs du jeu (privé/public)
-Il est initialisé par le __Server__ et transmis aux moteur de jeux __NetWorddleGame__ qui lui va se charger de demarrer la routine dans 
-son constructeur. Initialement __Messager__ est mis en attente de notification afin de delivrer les messages qu'il possedent
+
+Procédure pour lancer le jeux
+====
+NB: une cible __ant__ est fournie pour la compilation et l'exécution des programmes de maniere simple
+Donc il faut installer ant
+
+### Serveur
+
+        ant server -Darg0=n -Darg1=m -Darg2=time
+avec
+__n__ : le nombre de ligne de la grille
+
+__m__ : le nombre de colonne de la grille
+
+__time__ : le temps de jeu 
+
+
+ou 
+
+            ant server -Darg0=n -Darg1=m -Darg2=time -Darg3=dict
+
+
+__dict__ : le chemin vers le dictionnaire 
+
+### Client en mode console
+            ant client
+
+
+### Client graphique
+
+            ant game
+            
+            
+            
