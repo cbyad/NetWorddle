@@ -3,9 +3,12 @@
 
 Procédure pour lancer le jeux
 ====
-NB: une cible __ant__ est fournie pour la compilation et l'exécution des programmes de maniere simple
-Donc il faut installer ant
+1.    Une cible __ant__ est fournie pour la compilation et l'exécution des programmes de maniere simple
+**donc il faut installer ant**
 
+2.  Se mettre  à la racine du projet ou se trouve le fichier __build.xml__ 
+
+3.   Ensuite suivre les instructions suivantes :
 ### Serveur
 
         ant server -Darg0=n -Darg1=m -Darg2=time
