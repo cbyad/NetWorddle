@@ -10,6 +10,7 @@ Donc il faut installer ant
 
         ant server -Darg0=n -Darg1=m -Darg2=time
 avec
+
 __n__ : le nombre de ligne de la grille
 
 __m__ : le nombre de colonne de la grille
