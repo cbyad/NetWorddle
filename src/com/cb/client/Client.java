@@ -14,14 +14,14 @@ public class Client {
     PrintWriter out;
     Scanner sc = new Scanner(System.in);//pour lire à partir du clavier
 
-    public Client() {
+    public Client( String host ,int port) {
 
         try {
          /*
          * les informations du serveur ( port et adresse IP ou nom d'hote
          * 127.0.0.1 est l'adresse local de la machine
          */
-            clientSocket = new Socket("127.0.0.1", 2018);
+            clientSocket = new Socket(host, port);
 
             //flux pour envoyer
             out = new PrintWriter(clientSocket.getOutputStream());
@@ -73,7 +73,10 @@ public class Client {
     }
 
     public static void main(String[] args) {
-        new Client();
+        String host = args[0];
+        int port = Integer.valueOf(args[1]);
+
+        new Client(host,port);
     }
 }
 

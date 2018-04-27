@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
  */
 public class Server extends Thread {
     public final static String PATH = "files/worddle/dicesets/american.diceset";
-    protected static final int PORT = 2018; // mettre en ligne de commande plus tard
+
     protected static final int NB_PLAYERS=2 ;
     private ServerSocket listen;
     private PuzzleGenerator generator;
@@ -25,8 +25,7 @@ public class Server extends Thread {
     private NetWorddleOperations netWorddleOperations;
     private NetWorddleGame netWorddleGame;
     private int gameTime;
-
-    protected int playerLimit; // de base on met a 2 mais pour le rendre plus generique
+    protected int playerLimit;
     private ExecutorService pool;
     private ArrayList<PlayerSession> playerSessions;
 
@@ -39,11 +38,11 @@ public class Server extends Thread {
      * @param dictionnaryPath le chemin vers le dictionnaire de mot
      * @param dicesPath le chemin vers les dés
      */
-    public Server(int n, int m,int time, String dictionnaryPath, String dicesPath) {
+    public Server(int port,int n, int m,int time, String dictionnaryPath, String dicesPath) {
 
         try {
             this.playerLimit = NB_PLAYERS;
-            listen = new ServerSocket(PORT);
+            listen = new ServerSocket(port);
             pool = Executors.newFixedThreadPool(playerLimit);
             generator = new PuzzleGenerator(n, m, dicesPath);
             this.gameTime=time;
@@ -60,7 +59,7 @@ public class Server extends Thread {
             System.out.println(e.getMessage());
             System.exit(-1);
         }
-        System.out.println("Listening on port : "+ PORT);
+        System.out.println("Listening on port : "+ port);
         this.start(); // appel de la fonction public void run() de la routine
         netWorddleGame.start(); // demarrage du jeux
     }
@@ -107,15 +106,14 @@ public class Server extends Thread {
 
     public static void main(String[] args) {
         String dict = "files/worddle/dictionaries/american-english.dict"; // par defauft
-        //String dict = args[3];  decommenté pour passer un autre dictionnaire en argument
-        int n = Integer.valueOf(args[0]);
-        int m = Integer.valueOf(args[1]);
-        int time = Integer.valueOf(args[2]);
+        //String dict = args[4];  decommenté cette ligne pour passer un autre dictionnaire en argument
+        int port = Integer.valueOf(args[0]);
+        int n = Integer.valueOf(args[1]);
+        int m = Integer.valueOf(args[2]);
+        int time = Integer.valueOf(args[3]);
 
-
-        Server s =new Server( n, m,time, dict, PATH);
+        Server s =new Server(port, n, m,time, dict, PATH);
         //s.generator.printGrid();
-
     }
 
 }

@@ -11,26 +11,33 @@ Procédure pour lancer le jeux
 3.   Ensuite suivre les instructions suivantes :
 ### Serveur
 
-        ant server -Darg0=n -Darg1=m -Darg2=time
+        ant server -Darg0=port -Darg1=n -Darg2=m -Darg3=time
 avec
+
+__port__ : le port du serveur 
 
 __n__ : le nombre de ligne de la grille
 
 __m__ : le nombre de colonne de la grille
 
-__time__ : le temps de jeu 
+__time__ : le temps de jeu en seconde
 
 
 ou 
 
-            ant server -Darg0=n -Darg1=m -Darg2=time -Darg3=dict
+            ant server -Darg0=port -Darg1=n -Darg2=m -Darg3=time -Darg4=dict
 
 
 __dict__ : le chemin vers le dictionnaire 
 
 ### Client en mode console
-            ant client
+            ant client-Darg0=host -Darg1=port 
+       
+avec 
 
+__host__ : l'adresse du serveur (**localhost** pour une machine locale)
+
+__port__ : le port du serveur 
 
 ### Client graphique
 

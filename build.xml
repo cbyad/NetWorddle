@@ -20,6 +20,7 @@
   <property name="arg1" value=""/>
   <property name="arg2" value=""/>
   <property name="arg3" value=""/>
+  <property name="arg4" value=""/>
   <target name="server" depends="compile">
     <echo>================ Run Server  ================</echo>
     <java classname="com.cb.server.Server"
@@ -28,6 +29,7 @@
       <arg value="${arg1}"/>
       <arg value="${arg2}"/>
       <arg value="${arg3}"/>
+      <arg value="${arg4}"/>
 
     </java>
 
@@ -47,14 +49,9 @@
     <echo>================ Run console client Main ================</echo>
     <java classname="com.cb.client.Client"
           classpath="${build}/:jars/*" fork="true">
+      <arg value="${arg0}"/>
+      <arg value="${arg1}"/>
 
-      <!--
-      <arg value="-nbPoints"/>
-      <arg value="1000"/>
-      <arg value="-edgeThreshold"/>
-      <arg value="55"/>
-              <arg value="-proxyPPTI"/>
-      -->
     </java>
   </target>
 

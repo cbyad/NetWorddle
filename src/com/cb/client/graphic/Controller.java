@@ -229,7 +229,7 @@ public class Controller implements ProtocolMessage {
     private void bindAllListenerEvent() {
 
         portButton.setOnMouseClicked(e -> {
-            if (!isConnected()) {
+            if (!isConnected() && !portField.getText().isEmpty() && !hostNameField.getText().isEmpty() ) {
                 connect();
                 this.primaryStage.setScene(this.gameScene); // passer au mode jeu
             } else return;
