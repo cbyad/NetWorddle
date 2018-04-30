@@ -160,13 +160,14 @@ public class NetWorddleOperations {
      */
     public void sendPrivateMessage(PlayerSession playerSession,String name, String message) throws IOException {
         PlayerSession cible = getKey(name);
+        String sender =netWorddleGame.playersSessionUsername.get(playerSession);
         if (cible!=null){
-        cible.sendMessage(message);
+        cible.sendMessage(sender+ " : "+message);
         }
     }
 
     /**
-     * Strategie de notation des mots . Juste un coix d'implem on peut la changer
+     * Strategie de notation des mots . Juste un choix d'implem on peut la changer
      * @param word
      * @return le score du mot
      */

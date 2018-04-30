@@ -87,32 +87,11 @@ public class NetWorddleGame extends Thread {
         StringBuilder msg1 = new StringBuilder();
         StringBuilder msg2 = new StringBuilder();
 
+        msg1 =buildScoreMessage(p2,msg1);
+        msg2 =buildScoreMessage(p1,msg2);
 
-        if (!wordsAlreadyFound.get(p2).isEmpty()) {
-            wordsAlreadyFound.get(p2).stream().filter(word -> word.length() > 2).forEach(word -> {
-                msg1.append(word);
-                msg1.append("/");
-                msg1.append(p2.netWorddleOperations.giveScore(word));
-                msg1.append(",");
-            });
-            int lastChar1 = msg1.length() - 1;
-            msg1.deleteCharAt(lastChar1);
-        }
-
-        if (!wordsAlreadyFound.get(p1).isEmpty()) {
-            wordsAlreadyFound.get(p1).stream().filter(word -> word.length() > 2).forEach(word -> {
-                msg2.append(word);
-                msg2.append("/");
-                msg2.append(p1.netWorddleOperations.giveScore(word));
-                msg2.append(",");
-            });
-
-            int lastChar2 = msg2.length() - 1;
-            msg2.deleteCharAt(lastChar2);
-        }
-
-        String finalMsg1 ="stop"+","+msg1.toString();
-        String finalMsg2 ="stop"+","+msg2.toString();
+        String finalMsg1 = (msg1.toString().isEmpty())? "stop,0" : "stop"+","+msg1.toString();
+        String finalMsg2 = (msg2.toString().isEmpty())? "stop,0" : "stop"+","+msg2.toString();
 
         try {
             p1.netWorddleOperations.sendPrivateMessage(p1,username2,finalMsg1);
@@ -120,7 +99,20 @@ public class NetWorddleGame extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private StringBuilder buildScoreMessage(PlayerSession p,StringBuilder msg) {
+        if (!wordsAlreadyFound.get(p).isEmpty()) {
+            wordsAlreadyFound.get(p).stream().filter(word -> word.length() > 2).forEach(word -> {
+                msg.append(word);
+                msg.append("/");
+                msg.append(p.netWorddleOperations.giveScore(word));
+                msg.append(",");
+            });
+            int lastChar = msg.length() - 1;
+            msg.deleteCharAt(lastChar);
+        }
+        return msg;
     }
 
     public void run() {

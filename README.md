@@ -25,13 +25,13 @@ __time__ : le temps de jeu en seconde
 
 ou 
 
-            ant server -Darg0=port -Darg1=n -Darg2=m -Darg3=time -Darg4=dict
+        ant server -Darg0=port -Darg1=n -Darg2=m -Darg3=time -Darg4=dict
 
 
 __dict__ : le chemin vers le dictionnaire 
 
 ### Client en mode console
-            ant client-Darg0=host -Darg1=port 
+        ant client -Darg0=host -Darg1=port 
        
 avec 
 
@@ -41,7 +41,9 @@ __port__ : le port du serveur
 
 ### Client graphique
 
-            ant game
+        ant game
             
             
-            
+## License
+
+Voir la [LICENSE](LICENSE.md)     (GNU/GPL)    

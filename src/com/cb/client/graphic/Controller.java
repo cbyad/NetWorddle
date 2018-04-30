@@ -66,6 +66,7 @@ public class Controller implements ProtocolMessage {
             = Logger.getLogger(MethodHandles.lookup().lookupClass().getName());
 
     private ObservableList<String> rcvdMsgsData;
+
     private boolean connected;
 
     @Override
